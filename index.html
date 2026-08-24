@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Farmacoterapia da DPOC</title>
+<style>
+  :root {
+    --teal-dark: #134e4a;
+    --teal: #0f766e;
+    --teal-light: #14b8a6;
+    --bg: #f4f7f6;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #64748b;
+    --green: #16a34a;
+    --red: #dc2626;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color: white;
+    padding: 32px 20px;
+    text-align: center;
+  }
+  header .kicker {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 8px;
+  }
+  header h1 {
+    margin: 0 0 6px 0;
+    font-size: 28px;
+  }
+  header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: -28px auto 40px auto;
+    padding: 0 16px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(15, 118, 110, 0.12);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  #start-screen p { color: var(--muted); line-height: 1.6; }
+  .btn {
+    display: inline-block;
+    background: var(--teal);
+    color: white;
+    border: none;
+    padding: 13px 26px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--teal-dark); }
+  .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+  }
+  .btn-secondary:hover { background: #ecfdf5; }
+  .progress-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal-light);
+    transition: width 0.3s ease;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .category-tag {
+    display: inline-block;
+    background: #ccfbf1;
+    color: var(--teal-dark);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  #question-text {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 20px 0;
+  }
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #fafafa;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .option:hover:not(:disabled) {
+    border-color: var(--teal-light);
+    background: #f0fdfa;
+  }
+  .option.correct {
+    background: #dcfce7;
+    border-color: var(--green);
+    color: #166534;
+    font-weight: 600;
+  }
+  .option.incorrect {
+    background: #fee2e2;
+    border-color: var(--red);
+    color: #991b1b;
+    font-weight: 600;
+  }
+  .option:disabled { cursor: default; }
+  #explanation {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #f0fdfa;
+    border-left: 4px solid var(--teal);
+    font-size: 14px;
+    line-height: 1.55;
+    display: none;
+  }
+  #explanation.show { display: block; }
+  #next-btn { margin-top: 18px; display: none; }
+  #next-btn.show { display: inline-block; }
+  #result-screen { display: none; text-align: center; }
+  #result-screen.show { display: block; }
+  .score-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: conic-gradient(var(--teal-light) calc(var(--pct) * 1%), var(--border) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto 20px auto;
+  }
+  .score-circle-inner {
+    width: 104px;
+    height: 104px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .score-circle-inner .num { font-size: 26px; font-weight: 800; color: var(--teal-dark); }
+  .score-circle-inner .den { font-size: 12px; color: var(--muted); }
+  #result-msg { font-size: 16px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+  .review-item {
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+  }
+  .review-item .q { font-weight: 600; margin-bottom: 4px; }
+  .review-item .status { font-weight: 700; }
+  .review-item .status.ok { color: var(--green); }
+  .review-item .status.bad { color: var(--red); }
+  .ok-count { color: var(--green); font-weight: 700; }
+  .bad-count { color: var(--red); font-weight: 700; }
+  .pct-big {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--teal-dark);
+    margin: 4px 0 2px 0;
+  }
+  .pct-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding-bottom: 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Farmacologia Aplicada à Clínica II · TBL 1</div>
+  <h1>Quiz — Farmacoterapia da DPOC</h1>
+  <p>Baseado no Apêndice 3 do GOLD Report (Overview of the Evidence: Pharmacotherapy)</p>
+</header>
+
+<div class="wrap">
+
+  <div class="card" id="start-screen">
+    <p><strong>50 perguntas</strong> cobrindo cessação de tabagismo, broncodilatadores, corticoide inalatório e o papel do eosinófilo, terapia tripla, PDE4, antibióticos profiláticos, mucolíticos, biológicos, adesão ao tratamento, situações especiais e os fármacos que <em>não</em> funcionam na DPOC.</p>
+    <p>Cada resposta mostra a explicação na hora, e você acompanha acertos e erros em tempo real. No final aparece sua porcentagem de acerto e dá pra revisar tudo.</p>
+    <button class="btn" id="start-btn">Começar quiz</button>
+  </div>
+
+  <div class="card" id="quiz-screen" style="display:none;">
+    <div class="progress-label">
+      <span id="progress-text">Pergunta 1 de 20</span>
+      <span id="score-text"><span class="ok-count">Acertos: 0</span> · <span class="bad-count">Erros: 0</span></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="category-tag" id="category-tag">Categoria</div>
+    <p id="question-text"></p>
+    <div id="options-container"></div>
+    <div id="explanation"></div>
+    <button class="btn" id="next-btn">Próxima pergunta →</button>
+  </div>
+
+  <div class="card" id="result-screen">
+    <div class="score-circle" id="score-circle" style="--pct: 0;">
+      <div class="score-circle-inner">
+        <span class="num" id="final-score">0</span>
+        <span class="den" id="final-total">de 20</span>
+      </div>
+    </div>
+    <div class="pct-big" id="pct-big">0%</div>
+    <div class="pct-sub" id="pct-sub"><span class="ok-count">0 acertos</span> · <span class="bad-count">0 erros</span></div>
+    <div id="result-msg"></div>
+    <button class="btn" id="review-btn">Ver revisão completa</button>
+    <button class="btn btn-secondary" id="restart-btn">Refazer quiz</button>
+    <div id="review-list" style="margin-top:22px; display:none;"></div>
+  </div>
+
+</div>
+
+<footer>Vault de Medicina · gerado a partir do material enviado</footer>
+
+<script>
+const QUESTIONS = [
+  {
+    cat: "Cessação de tabagismo",
+    q: "Após uma síndrome coronariana aguda, quando a terapia de reposição de nicotina (TRN) pode ser iniciada?",
+    options: [
+      "Nunca deve ser iniciada nesses pacientes",
+      "Imediatamente, ainda internado",
+      "Após 2 semanas do evento cardiovascular",
+      "Somente após 6 meses"
+    ],
+    correct: 2,
+    explanation: "A contraindicação da TRN após síndrome coronariana aguda permanece incerta, mas a evidência sugere que o tratamento pode e deve ser iniciado após 2 semanas do evento cardiovascular."
+  },
+  {
+    cat: "Cessação de tabagismo",
+    q: "Entre bupropiona, vareniclina e nortriptilina para cessação do tabagismo, qual NÃO aumentou a chance de cessação comparada a placebo?",
+    options: ["Bupropiona", "Vareniclina", "Nortriptilina", "Todas aumentaram igualmente"],
+    correct: 2,
+    explanation: "Numa metanálise comparando TRN, bupropiona, nortriptilina e vareniclina com placebo em fumantes com DPOC, todos os grupos aumentaram a cessação, exceto a nortriptilina."
+  },
+  {
+    cat: "Cessação de tabagismo",
+    q: "Sobre o uso de cigarros eletrônicos (vaping) para cessação em pacientes com DPOC, a conduta correta é:",
+    options: [
+      "Recomendar como primeira linha, é mais seguro que fumar",
+      "Não recomendar, apesar de sinal de eficácia em metanálise, pelo desconhecimento dos efeitos respiratórios de longo prazo",
+      "Recomendar apenas em maiores de 60 anos",
+      "Está formalmente contraindicado por bula em todos os países"
+    ],
+    correct: 1,
+    explanation: "Mesmo com uma metanálise de 5 ECRs sugerindo superioridade do e-cigarro sobre a TRN em abstinência de 6 meses, não é possível recomendar essa intervenção em pacientes com DPOC pela falta de dados de segurança respiratória em longo prazo (e pelo risco de EVALI)."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Qual afirmação sobre a curva dose-resposta dos broncodilatadores na DPOC é verdadeira?",
+    options: [
+      "É linear: dobrar a dose dobra o efeito",
+      "É relativamente achatada para todas as classes de broncodilatador",
+      "Só é achatada para os antimuscarínicos",
+      "Só é achatada para os beta2-agonistas de longa duração"
+    ],
+    correct: 1,
+    explanation: "As curvas de dose-resposta (mudança de VEF1) são relativamente planas com todas as classes de broncodilatadores — aumentar muito a dose não traz ganho proporcional de benefício."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Qual desses LABAs é administrado uma vez ao dia?",
+    options: ["Salmeterol", "Formoterol", "Indacaterol", "Nenhum LABA é 1x/dia"],
+    correct: 2,
+    explanation: "Formoterol e salmeterol são LABAs de 2x/dia. Indacaterol, olodaterol e vilanterol são LABAs de administração 1x/dia."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Comparando LAMA (ex.: tiotrópio) com LABA isolado, o que os estudos mostraram sobre taxa de exacerbação?",
+    options: [
+      "LABA reduz mais exacerbação que LAMA",
+      "LAMA teve efeito maior na redução da taxa de exacerbação",
+      "Não há diferença entre as duas classes",
+      "Nenhuma das duas classes reduz exacerbação"
+    ],
+    correct: 1,
+    explanation: "Ensaios clínicos mostraram efeito maior sobre a taxa de exacerbação com tratamento LAMA (tiotrópio) comparado a LABA."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Qual é o principal efeito colateral da classe dos antimuscarínicos inalatórios (LAMA/SAMA)?",
+    options: ["Taquicardia grave", "Boca seca", "Hipocalemia", "Convulsão"],
+    correct: 1,
+    explanation: "A absorção sistêmica dos anticolinérgicos inalados é baixa, o que limita efeitos sistêmicos tipo atropina — o efeito colateral mais comum é boca seca."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Sobre a teofilina, é correto afirmar que:",
+    options: [
+      "Tem margem terapêutica ampla e poucas interações",
+      "Reduz exacerbações de forma consistente mesmo em monoterapia",
+      "Tem margem terapêutica estreita e interage com eritromicina, ciprofloxacino e cimetidina",
+      "É a primeira escolha de broncodilatador na DPOC estável"
+    ],
+    correct: 2,
+    explanation: "A teofilina tem margem terapêutica pequena (boa parte do benefício só ocorre perto de doses tóxicas) e interage com eritromicina (mas não azitromicina), ciprofloxacino (mas não ofloxacino), alopurinol, cimetidina (mas não ranitidina), fluvoxamina e zileutona."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Um paciente com DPOC tem eosinófilo sanguíneo de 80 células/µL. Qual a expectativa de benefício com ICS?",
+    options: [
+      "Benefício máximo esperado",
+      "Pouco ou nenhum benefício esperado",
+      "Benefício moderado, mas só à noite",
+      "O eosinófilo não tem relação com resposta ao ICS"
+    ],
+    correct: 1,
+    explanation: "Abaixo de 100 células/µL, os regimes com ICS têm pouco ou nenhum efeito — esse limiar identifica pacientes com baixa probabilidade de benefício com o corticoide inalatório."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "A partir de qual contagem de eosinófilos sanguíneos o paciente tem a maior probabilidade de se beneficiar do ICS?",
+    options: ["≥ 50 células/µL", "≥ 100 células/µL", "≥ 300 células/µL", "≥ 1000 células/µL"],
+    correct: 2,
+    explanation: "O limiar de eosinófilo sanguíneo ≥ 300 células/µL identifica o topo da relação contínua entre eosinófilo e efeito do ICS — maior probabilidade de benefício com o tratamento."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Qual é um risco confirmado do uso de ICS na DPOC, mesmo em doses baixas?",
+    options: ["Insuficiência renal aguda", "Pneumonia", "Hipertireoidismo", "Pancreatite aguda"],
+    correct: 1,
+    explanation: "Há evidência de alta qualidade de que o ICS aumenta a prevalência de candidíase oral, rouquidão, equimose cutânea e pneumonia — esse excesso de risco de pneumonia foi confirmado mesmo com fluticasona furoato em dose baixa."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Qual é o papel do corticoide ORAL no tratamento crônico e diário da DPOC estável?",
+    options: [
+      "É a base do tratamento de manutenção",
+      "Só deve ser usado em exacerbações agudas, sem papel no tratamento crônico diário",
+      "Deve ser usado em todo paciente com eosinófilo alto",
+      "Substitui o ICS quando o paciente não tolera inalador"
+    ],
+    correct: 1,
+    explanation: "Corticoides orais têm papel comprovado apenas no manejo agudo de exacerbações. No tratamento diário/crônico da DPOC estável não têm papel, pela falta de benefício frente ao alto risco de complicações sistêmicas (ex.: miopatia esteroide)."
+  },
+  {
+    cat: "Terapia tripla",
+    q: "Os estudos IMPACT e ETHOS, citados na aula, mostraram que a terapia tripla em dose fixa (LABA+LAMA+ICS), comparada à broncodilatação dupla, teve impacto em:",
+    options: [
+      "Nenhum desfecho relevante",
+      "Redução de mortalidade",
+      "Apenas melhora estética da pele",
+      "Aumento da mortalidade"
+    ],
+    correct: 1,
+    explanation: "Os dois grandes ensaios de um ano (IMPACT e ETHOS) forneceram evidência de redução de mortalidade com a combinação tripla inalatória em dose fixa, comparada à broncodilatação dupla."
+  },
+  {
+    cat: "Outros anti-inflamatórios",
+    q: "O roflumilaste (inibidor de PDE4) tem qual efeito adverso característico que exige monitorização?",
+    options: ["Ganho de peso", "Perda de peso", "Hipertensão arterial grave", "Surdez súbita"],
+    correct: 1,
+    explanation: "Estudos controlados mostraram perda de peso média de 2 kg com roflumilaste — o peso deve ser monitorado durante o tratamento, e o fármaco deve ser evitado em pacientes já com baixo peso."
+  },
+  {
+    cat: "Outros anti-inflamatórios",
+    q: "Dos três biológicos anti-eosinofílicos estudados na DPOC grave (dupilumabe, mepolizumabe, benralizumabe), qual NÃO reduziu a taxa de exacerbações?",
+    options: ["Dupilumabe", "Mepolizumabe", "Benralizumabe", "Todos reduziram igualmente"],
+    correct: 2,
+    explanation: "Apesar de também depletar eosinófilos (por bloqueio do receptor de IL-5), o benralizumabe não foi associado a menor taxa anualizada de exacerbações — resultado diferente do observado com dupilumabe (anti-IL-4/IL-13) e mepolizumabe (anti-IL-5)."
+  },
+  {
+    cat: "Antibióticos e mucolíticos",
+    q: "O uso profilático de azitromicina por 1 ano em pacientes propensos a exacerbação está associado a qual risco?",
+    options: [
+      "Nenhum risco relevante",
+      "Prolongamento do intervalo QTc e aumento de resistência bacteriana",
+      "Hepatotoxicidade grave universal",
+      "Perda completa e irreversível da audição em todos os pacientes"
+    ],
+    correct: 1,
+    explanation: "O uso de azitromicina profilática foi associado a aumento de resistência bacteriana, prolongamento do QTc e alteração em testes de audição — sem dados de segurança além de 1 ano de tratamento."
+  },
+  {
+    cat: "Antibióticos e mucolíticos",
+    q: "Mucolíticos como carbocisteína e N-acetilcisteína (NAC) têm maior chance de reduzir exacerbações em pacientes que:",
+    options: [
+      "Já estão em uso de ICS",
+      "Não estão recebendo ICS",
+      "Têm eosinófilo acima de 300",
+      "Fazem uso crônico de teofilina"
+    ],
+    correct: 1,
+    explanation: "Em pacientes com DPOC que NÃO estão recebendo ICS, o tratamento regular com mucolíticos como carbocisteína e NAC pode reduzir exacerbações e melhorar modestamente o estado de saúde."
+  },
+  {
+    cat: "Fármacos sem benefício",
+    q: "Um ensaio clínico com metoprolol (sem indicação cardiovascular própria) em pacientes com DPOC mostrou que:",
+    options: [
+      "Reduziu significativamente as exacerbações",
+      "Não atrasou o tempo até a primeira exacerbação e a internação foi mais comum no grupo tratado",
+      "Foi indiferente, sem qualquer diferença",
+      "Curou a DPOC em 30% dos pacientes"
+    ],
+    correct: 1,
+    explanation: "O betabloqueador seletivo metoprolol, em pacientes sem indicação cardiovascular estabelecida, não atrasou o tempo até a primeira exacerbação, e a internação por exacerbação foi mais comum no grupo tratado com metoprolol."
+  },
+  {
+    cat: "Situações especiais",
+    q: "A terapia de aumento com alfa-1 antitripsina é indicada principalmente para pacientes com qual genótipo?",
+    options: ["MM", "MZ", "ZZ (PiZZ)", "SS"],
+    correct: 2,
+    explanation: "Os dados de ensaios clínicos e registros sobre terapia de aumento com alfa-1 antitripsina são quase exclusivamente de pacientes com genótipo ZZ (ZZ-AATD/PiZZ), o principal alvo dessa terapia de custo elevado."
+  },
+  {
+    cat: "Situações especiais",
+    q: "Sobre vasodilatadores (óxido nítrico, sildenafila, tadalafila) na DPOC estável, é correto afirmar que:",
+    options: [
+      "Óxido nítrico inalado é contraindicado, pois pode piorar a troca gasosa",
+      "Sildenafila é a primeira linha para todo paciente com DPOC",
+      "Tadalafila melhora significativamente a capacidade de exercício em todos os pacientes",
+      "Todos são fortemente recomendados na DPOC estável"
+    ],
+    correct: 0,
+    explanation: "O óxido nítrico inalado pode piorar a troca gasosa (por alterar a regulação hipóxica do balanço ventilação-perfusão) e é contraindicado na DPOC estável. Sildenafila não melhora resultados de reabilitação e tadalafila não melhora capacidade de exercício em hipertensão pulmonar leve associada à DPOC."
+  },
+  {
+    cat: "Cessação de tabagismo",
+    q: "A lesão pulmonar aguda associada ao vaping (EVALI) foi fortemente ligada a qual substância?",
+    options: ["Nicotina pura", "Acetato de vitamina E", "Propilenoglicol", "Mentol"],
+    correct: 1,
+    explanation: "O CDC e a FDA investigaram o surto de EVALI e encontraram forte ligação com o acetato de vitamina E, aditivo presente em alguns e-líquidos com THC. A incidência de novos casos caiu após essa identificação."
+  },
+  {
+    cat: "Cessação de tabagismo",
+    q: "Por que a mastigação contínua da goma de nicotina reduz a eficácia da TRN?",
+    options: [
+      "A goma perde sabor rapidamente",
+      "A secreção é engolida em vez de absorvida pela mucosa bucal, causando pouca absorção",
+      "A nicotina é destruída pela saliva",
+      "Não há redução de eficácia com mastigação contínua"
+    ],
+    correct: 1,
+    explanation: "A mastigação contínua da goma produz secreções que são engolidas em vez de absorvidas pela mucosa bucal, resultando em pouca absorção de nicotina e potencial náusea."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "O uso regular (não sob demanda) de broncodilatadores de curta duração (SABA/SAMA) é:",
+    options: [
+      "Recomendado como primeira linha",
+      "Geralmente não recomendado",
+      "Obrigatório em todo paciente com DPOC",
+      "Indicado só à noite"
+    ],
+    correct: 1,
+    explanation: "O uso de broncodilatadores de curta duração de forma regular (não sob demanda) geralmente não é recomendado — eles são reservados para alívio agudo."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Broncodilatadores reduzem a hiperinsuflação dinâmica e melhoram a performance ao exercício. Esse efeito, em pacientes com DPOC grave, é:",
+    options: [
+      "Sempre proporcional à melhora do VEF1 em repouso",
+      "Fácil de prever a partir do VEF1 medido em repouso",
+      "Nem sempre fácil de prever a partir da melhora do VEF1 em repouso",
+      "Inexistente — broncodilatador não afeta hiperinsuflação"
+    ],
+    correct: 2,
+    explanation: "A extensão dessas mudanças, especialmente em DPOC grave/muito grave, não é fácil de prever a partir da melhora do VEF1 medido em repouso."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Qual efeito adverso dos beta2-agonistas pode ser potencializado pelo uso concomitante de diurético tiazídico?",
+    options: ["Hipercalemia", "Hipocalemia", "Hipernatremia", "Hipoglicemia"],
+    correct: 1,
+    explanation: "Hipocalemia pode ocorrer com beta2-agonistas, especialmente quando combinados com diurético tiazídico — esse efeito metabólico tende a diminuir com o tempo (taquifilaxia)."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "O uso regular de ipratrópio (SAMA) foi associado a qual achado inesperado em estudos observacionais?",
+    options: [
+      "Redução de eventos cardiovasculares",
+      "Pequeno aumento de eventos cardiovasculares",
+      "Cura da hipertensão arterial",
+      "Nenhum achado cardiovascular relevante"
+    ],
+    correct: 1,
+    explanation: "Foi relatado um pequeno aumento inesperado de eventos cardiovasculares em pacientes com DPOC tratados regularmente com ipratrópio — diferente do tiotrópio, que não mostrou esse risco em grande ensaio de longo prazo."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "O uso de solução anticolinérgica nebulizada com máscara facial (em vez de bocal) pode precipitar qual complicação ocular?",
+    options: ["Catarata", "Glaucoma agudo", "Descolamento de retina", "Uveíte"],
+    correct: 1,
+    explanation: "O uso de soluções anticolinérgicas com máscara facial pode precipitar glaucoma agudo, provavelmente por contato direto da solução com o olho."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Combinar formoterol e tiotrópio em inaladores separados, comparado a cada componente isolado, tem qual impacto no VEF1?",
+    options: [
+      "Impacto menor que qualquer um dos componentes isolados",
+      "Impacto maior no VEF1 do que qualquer componente isolado",
+      "Nenhum impacto adicional",
+      "Só funciona se usados no mesmo horário exato"
+    ],
+    correct: 1,
+    explanation: "O tratamento com formoterol e tiotrópio em inaladores separados tem impacto maior no VEF1 do que qualquer um dos componentes isolados."
+  },
+  {
+    cat: "Broncodilatadores",
+    q: "Em relação aos inaladores únicos (combinação fixa) versus múltiplos inaladores separados, é correto afirmar que os inaladores únicos:",
+    options: [
+      "Pioram a adesão ao tratamento",
+      "Melhoram a adesão e são mais custo-efetivos",
+      "Não têm relação com adesão ao tratamento",
+      "São sempre mais caros e menos aderidos"
+    ],
+    correct: 1,
+    explanation: "Inaladores únicos (combinação fixa) melhoram a adesão ao tratamento e são mais custo-efetivos do que múltiplos inaladores separados."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "No estudo TORCH, qual foi o achado sobre mortalidade com fluticasona propionato isolada?",
+    options: [
+      "Redução significativa de mortalidade",
+      "Tendência a maior mortalidade comparada a placebo ou à combinação com salmeterol",
+      "Nenhuma diferença em nenhum desfecho",
+      "Cura completa da DPOC em 40% dos pacientes"
+    ],
+    correct: 1,
+    explanation: "No TORCH, houve tendência a maior mortalidade com fluticasona propionato isolada comparada a placebo ou à combinação salmeterol+fluticasona — achado não replicado no estudo SUMMIT com fluticasona furoato."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Pacientes com maior risco de pneumonia associada ao ICS incluem todos, EXCETO:",
+    options: [
+      "Tabagista atual",
+      "IMC < 25 kg/m²",
+      "IMC > 35 kg/m² sem outras comorbidades",
+      "História prévia de exacerbação ou pneumonia"
+    ],
+    correct: 2,
+    explanation: "Fatores de maior risco de pneumonia com ICS incluem tabagismo atual, idade ≥ 55 anos, história prévia de exacerbação/pneumonia, IMC < 25 kg/m², dispneia mMRC alta e obstrução grave — IMC alto isolado não está entre os fatores citados."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Independente do uso de ICS, um eosinófilo sanguíneo < 2% está associado a maior risco de:",
+    options: ["Osteoporose", "Pneumonia", "Diabetes", "Catarata"],
+    correct: 1,
+    explanation: "Há evidência de que um eosinófilo sanguíneo < 2% aumenta o risco de desenvolver pneumonia, independentemente do uso de ICS."
+  },
+  {
+    cat: "Corticoide inalatório (ICS)",
+    q: "Um estudo farmacoepidemiológico observacional comparando LABA+LAMA com LABA+ICS encontrou:",
+    options: [
+      "LABA+ICS muito mais eficaz, sem diferença de risco",
+      "Efetividade semelhante, mas risco significativamente maior de pneumonia com LABA+ICS",
+      "LABA+LAMA com risco maior de pneumonia",
+      "Nenhuma diferença em nenhum desfecho"
+    ],
+    correct: 1,
+    explanation: "O estudo encontrou efetividade semelhante entre LABA+LAMA e LABA+ICS, mas risco significativamente maior de pneumonia no grupo tratado com LABA+ICS."
+  },
+  {
+    cat: "Terapia tripla",
+    q: "A terapia tripla (LABA+LAMA+ICS), comparada a LAMA isolado, LABA+LAMA e LABA+ICS, mostrou:",
+    options: [
+      "Piora da função pulmonar",
+      "Melhora da função pulmonar, dos desfechos relatados pelo paciente e redução de exacerbações",
+      "Nenhuma diferença relevante",
+      "Benefício apenas em desfechos estéticos"
+    ],
+    correct: 1,
+    explanation: "A terapia tripla melhorou função pulmonar, desfechos relatados pelo paciente (PROs) e reduziu exacerbações comparada a LAMA isolado, LABA+LAMA e LABA+ICS."
+  },
+  {
+    cat: "Terapia tripla",
+    q: "Uma análise post-hoc de terapia tripla mostrou que o benefício em desfechos clínicos, comparado à terapia dupla, ocorreu:",
+    options: [
+      "Só em não-fumantes",
+      "Independente do status de tabagismo",
+      "Só em tabagistas ativos",
+      "Só em pacientes acima de 80 anos"
+    ],
+    correct: 1,
+    explanation: "Uma análise post-hoc de um dos ensaios de LABA+LAMA+ICS mostrou que a terapia tripla melhorou desfechos clínicos comparada à terapia dupla independentemente do status de tabagismo."
+  },
+  {
+    cat: "Outros anti-inflamatórios",
+    q: "O roflumilaste apresenta benefício maior em pacientes que:",
+    options: [
+      "Nunca tiveram exacerbação",
+      "Têm história prévia de hospitalização por exacerbação aguda",
+      "São jovens e sem bronquite crônica",
+      "Usam apenas SABA sob demanda"
+    ],
+    correct: 1,
+    explanation: "Os efeitos benéficos do roflumilaste foram relatados como maiores em pacientes com história prévia de hospitalização por exacerbação aguda."
+  },
+  {
+    cat: "Outros anti-inflamatórios",
+    q: "A ensifentrina (inibidor dual de PDE3 e PDE4) tem qual característica que a diferencia do roflumilaste?",
+    options: [
+      "É via oral, sem ação broncodilatadora",
+      "É inalada e tem efeito anti-inflamatório E broncodilatador combinados",
+      "Não tem nenhum efeito anti-inflamatório",
+      "É idêntica ao roflumilaste em mecanismo"
+    ],
+    correct: 1,
+    explanation: "A ensifentrina é inalada (via nebulizador) e combina atividade anti-inflamatória (inibição de PDE4) com efeito broncodilatador (inibição de PDE3), diferente do roflumilaste oral, que não tem ação broncodilatadora direta."
+  },
+  {
+    cat: "Outros anti-inflamatórios",
+    q: "O alvo molecular do dupilumabe na DPOC eosinofílica é:",
+    options: [
+      "IL-5 diretamente",
+      "Receptor compartilhado de IL-4 e IL-13",
+      "TNF-alfa",
+      "Receptor de IL-6"
+    ],
+    correct: 1,
+    explanation: "O dupilumabe é um anticorpo monoclonal que bloqueia o componente de receptor compartilhado por IL-4 e IL-13, diferente do mepolizumabe (anti-IL-5) e do benralizumabe (anti-receptor de IL-5)."
+  },
+  {
+    cat: "Antibióticos e mucolíticos",
+    q: "A pulsoterapia com moxifloxacino (400 mg/dia por 5 dias a cada 8 semanas) em pacientes com bronquite crônica e exacerbações frequentes teve qual resultado geral?",
+    options: [
+      "Reduziu significativamente a taxa de exacerbação",
+      "Não teve efeito benéfico geral sobre a taxa de exacerbação",
+      "Curou a bronquite crônica",
+      "Aumentou a mortalidade em todos os pacientes"
+    ],
+    correct: 1,
+    explanation: "A pulsoterapia com moxifloxacino não teve efeito benéfico geral sobre a taxa de exacerbação nesse grupo de pacientes."
+  },
+  {
+    cat: "Antibióticos e mucolíticos",
+    q: "O uso de mucolíticos foi associado, em média, a qual redução aproximada de exacerbações?",
+    options: [
+      "Cerca de 1 exacerbação a menos por mês",
+      "Cerca de 1 exacerbação a menos a cada 3 anos",
+      "Nenhuma redução detectável",
+      "Redução de 90% das exacerbações"
+    ],
+    correct: 1,
+    explanation: "O uso de mucolíticos foi associado a uma redução de cerca de 0,36 exacerbações por ano — aproximadamente 1 exacerbação a menos a cada 3 anos, com heterogeneidade alta entre estudos."
+  },
+  {
+    cat: "Antibióticos e mucolíticos",
+    q: "A DNase humana recombinante em pacientes com DPOC e secreção mucopurulenta mostrou:",
+    options: [
+      "Grande benefício comprovado",
+      "Falta de benefício, de forma semelhante a outros estudos",
+      "Cura completa da hipersecreção",
+      "Só funciona em crianças"
+    ],
+    correct: 1,
+    explanation: "A DNase humana recombinante mostrou falta de benefício em pacientes com DPOC e secreção mucopurulenta, de forma semelhante a outros estudos com esse agente."
+  },
+  {
+    cat: "Fármacos sem benefício",
+    q: "Um estudo com infliximabe (anti-TNF-alfa) em pacientes com DPOC mostrou:",
+    options: [
+      "Benefício claro na redução de exacerbações",
+      "Ausência de benefício e sinal de dano, incluindo malignidade e pneumonia",
+      "Redução da mortalidade em 50%",
+      "Melhora isolada da função renal"
+    ],
+    correct: 1,
+    explanation: "Não houve evidência de benefício, e houve sinal de dano — incluindo malignidade e pneumonia — com o uso de infliximabe em pacientes com DPOC."
+  },
+  {
+    cat: "Fármacos sem benefício",
+    q: "A sinvastatina, em pacientes com DPOC sem indicação metabólica ou cardiovascular para estatina, mostrou:",
+    options: [
+      "Preveniu exacerbações de forma significativa",
+      "Não preveniu exacerbações",
+      "Curou a obstrução das vias aéreas",
+      "Reduziu a necessidade de broncodilatador em 80%"
+    ],
+    correct: 1,
+    explanation: "A sinvastatina não preveniu exacerbações em pessoas com DPOC que não tinham indicação metabólica ou cardiovascular para o tratamento com estatina."
+  },
+  {
+    cat: "Fármacos sem benefício",
+    q: "Sobre a suplementação de vitamina D em pacientes não selecionados com DPOC, a evidência mostra:",
+    options: [
+      "Impacto positivo forte e consistente em todos os pacientes",
+      "Sem evidência de impacto positivo em exacerbações na população não selecionada",
+      "Piora significativa da função pulmonar",
+      "Substitui a necessidade de broncodilatador"
+    ],
+    correct: 1,
+    explanation: "Não há evidência de que a suplementação de vitamina D tenha impacto positivo em exacerbações em pacientes não selecionados. Um benefício foi sugerido apenas em quem já tinha baixos níveis basais de vitamina D, mas não foi replicado em estudo mais recente."
+  },
+  {
+    cat: "Adesão ao tratamento",
+    q: "Comparando autorrelato de adesão com monitorização eletrônica, os estudos mostram que os pacientes geralmente:",
+    options: [
+      "Subestimam o uso real da medicação",
+      "Superestimam o uso real da medicação",
+      "Relatam com precisão perfeita",
+      "Nunca respondem a esse tipo de pergunta"
+    ],
+    correct: 1,
+    explanation: "Quando comparado com monitorização eletrônica, o autorrelato de adesão é inconsistente — as pessoas geralmente superestimam (over-report) o uso real da medicação."
+  },
+  {
+    cat: "Adesão ao tratamento",
+    q: "Qual desses fatores está associado a MENOR adesão ao tratamento inalatório na DPOC?",
+    options: [
+      "Esquema posológico simples",
+      "Depressão como comorbidade",
+      "Alta renda familiar",
+      "Poucas comorbidades associadas"
+    ],
+    correct: 1,
+    explanation: "A presença de comorbidades, em particular depressão, além de tabagismo ativo, baixa escolaridade, gravidade da doença, complexidade posológica e polifarmácia, estão entre os principais fatores associados a baixa adesão."
+  },
+  {
+    cat: "Situações especiais",
+    q: "Pacientes heterozigotos para o gene Z de alfa-1 antitripsina (sem ser ZZ) que nunca desenvolveram DPOC apesar de tabagismo:",
+    options: [
+      "Sempre precisam de terapia de aumento",
+      "Não desenvolvem DPOC na ausência de tabagismo, então a cessação do tabagismo já é suficiente",
+      "Devem receber terapia de aumento desde o nascimento",
+      "Têm o mesmo risco que os homozigotos ZZ"
+    ],
+    correct: 1,
+    explanation: "Ao contrário dos homozigotos ZZ, heterozigotos para o gene Z não desenvolvem DPOC na ausência de tabagismo — por isso a cessação do tabagismo é considerada suficiente para prevenir progressão nesse grupo, sem necessidade de terapia de aumento."
+  },
+  {
+    cat: "Situações especiais",
+    q: "Qual é a principal limitação prática da terapia de aumento com alfa-1 antitripsina?",
+    options: [
+      "Não existe nenhuma limitação",
+      "Custo muito alto e disponibilidade restrita em muitos países",
+      "Só pode ser usada em crianças",
+      "Provoca insuficiência renal em todos os pacientes"
+    ],
+    correct: 1,
+    explanation: "A principal limitação da terapia de aumento com alfa-1 antitripsina é o custo muito alto e a falta de disponibilidade em muitos países."
+  },
+  {
+    cat: "Situações especiais",
+    q: "Sobre o papel dos antitussígenos na DPOC, a evidência disponível é:",
+    options: [
+      "Fortemente a favor do uso rotineiro",
+      "Inconclusiva",
+      "Fortemente contra qualquer uso",
+      "Todos os antitussígenos são contraindicados na DPOC"
+    ],
+    correct: 1,
+    explanation: "O papel dos antitussígenos em pessoas com DPOC é considerado inconclusivo pela evidência disponível."
+  },
+  {
+    cat: "Situações especiais",
+    q: "Qual das opções abaixo pode ajudar na mobilização de secreções em pacientes com DPOC que produzem escarro na maioria dos dias?",
+    options: [
+      "Terapia de pressão expiratória positiva oscilante",
+      "Betabloqueador",
+      "Estatina",
+      "Vitamina D isolada"
+    ],
+    correct: 0,
+    explanation: "Terapias de mobilização de muco que promovem movimento mecânico pela via aérea, como a pressão expiratória positiva oscilante, podem melhorar mobilização de secreções, sintomas e qualidade de vida em quem produz escarro na maioria dos dias."
+  }
+];
+
+let current = 0;
+let score = 0;
+let errors = 0;
+let answered = [];
+
+const startScreen = document.getElementById('start-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  startScreen.style.display = 'none';
+  quizScreen.style.display = 'block';
+  loadQuestion();
+});
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  current = 0;
+  score = 0;
+  errors = 0;
+  answered = [];
+  resultScreen.classList.remove('show');
+  document.getElementById('review-list').style.display = 'none';
+  document.getElementById('review-btn').textContent = 'Ver revisão completa';
+  quizScreen.style.display = 'block';
+  loadQuestion();
+});
+
+document.getElementById('review-btn').addEventListener('click', () => {
+  const list = document.getElementById('review-list');
+  const btn = document.getElementById('review-btn');
+  if (list.style.display === 'none') {
+    list.innerHTML = answered.map((a, i) => `
+      <div class="review-item">
+        <div class="q">${i+1}. ${a.q}</div>
+        <div class="status ${a.correct ? 'ok' : 'bad'}">${a.correct ? '✓ Você acertou' : '✗ Você errou'} — resposta certa: ${a.correctText}</div>
+      </div>
+    `).join('');
+    list.style.display = 'block';
+    btn.textContent = 'Esconder revisão';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = 'Ver revisão completa';
+  }
+});
+
+function updateScoreText() {
+  document.getElementById('score-text').innerHTML =
+    `<span class="ok-count">Acertos: ${score}</span> · <span class="bad-count">Erros: ${errors}</span>`;
+}
+
+function loadQuestion() {
+  const total = QUESTIONS.length;
+  const item = QUESTIONS[current];
+
+  document.getElementById('progress-text').textContent = `Pergunta ${current + 1} de ${total}`;
+  updateScoreText();
+  document.getElementById('progress-fill').style.width = `${(current / total) * 100}%`;
+  document.getElementById('category-tag').textContent = item.cat;
+  document.getElementById('question-text').textContent = item.q;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  item.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => selectAnswer(idx));
+    container.appendChild(btn);
+  });
+
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('next-btn').classList.remove('show');
+}
+
+function selectAnswer(idx) {
+  const item = QUESTIONS[current];
+  const options = document.querySelectorAll('.option');
+  const isCorrect = idx === item.correct;
+
+  options.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === item.correct) btn.classList.add('correct');
+    else if (i === idx) btn.classList.add('incorrect');
+  });
+
+  if (isCorrect) score++; else errors++;
+
+  answered.push({
+    q: item.q,
+    correct: isCorrect,
+    correctText: item.options[item.correct]
+  });
+
+  const expl = document.getElementById('explanation');
+  expl.textContent = item.explanation;
+  expl.classList.add('show');
+
+  updateScoreText();
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = current === QUESTIONS.length - 1 ? 'Ver resultado →' : 'Próxima pergunta →';
+  nextBtn.classList.add('show');
+}
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  current++;
+  if (current < QUESTIONS.length) {
+    loadQuestion();
+  } else {
+    showResult();
+  }
+});
+
+function showResult() {
+  quizScreen.style.display = 'none';
+  resultScreen.classList.add('show');
+
+  const total = QUESTIONS.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById('score-circle').style.setProperty('--pct', pct);
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-total').textContent = `de ${total}`;
+  document.getElementById('pct-big').textContent = `${pct}%`;
+  document.getElementById('pct-sub').innerHTML =
+    `<span class="ok-count">${score} acertos</span> · <span class="bad-count">${errors} erros</span>`;
+
+  let msg;
+  if (pct >= 90) msg = "Mandou muito bem! Esse conteúdo já tá redondo.";
+  else if (pct >= 70) msg = "Bom domínio do conteúdo — revê só os pontos que errou.";
+  else if (pct >= 50) msg = "Base ok, mas vale reler o resumo antes do TBL.";
+  else msg = "Ainda dá pra melhorar bastante — vale revisar o material com calma.";
+
+  document.getElementById('result-msg').textContent = `Você acertou ${score} de ${total} (${pct}%). ${msg}`;
+}
+</script>
+
+</body>
+</html>
